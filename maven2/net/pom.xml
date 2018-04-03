@@ -40,6 +40,11 @@
       <version>ALPHA_VERSION</version>
       <optional>false</optional>
     </dependency>
+      <dependency>
+          <groupId>com.tagperf</groupId>
+          <artifactId>sampler</artifactId>
+          <version>1.0-SNAPSHOT</version>
+      </dependency>
   </dependencies>
 
   <build>

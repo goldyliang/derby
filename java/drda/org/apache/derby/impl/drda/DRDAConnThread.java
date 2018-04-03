@@ -50,6 +50,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
+
+import com.tagperf.sampler.ThreadTag;
+import com.tagperf.sampler.ThreadTagProvider;
+
 import org.apache.derby.catalog.SystemProcedures;
 import org.apache.derby.iapi.error.ExceptionSeverity;
 import org.apache.derby.iapi.error.StandardException;
@@ -64,6 +68,7 @@ import org.apache.derby.iapi.reference.SQLState;
 import org.apache.derby.iapi.services.info.JVMInfo;
 import org.apache.derby.iapi.services.monitor.ModuleFactory;
 import org.apache.derby.iapi.services.monitor.Monitor;
+import org.apache.derby.impl.jdbc.EmbedStatement;
 import org.apache.derby.shared.common.sanity.SanityManager;
 import org.apache.derby.shared.common.error.MessageUtils;
 import org.apache.derby.iapi.services.stream.HeaderPrintWriter;
@@ -225,6 +230,16 @@ class DRDAConnThread extends Thread {
      * and transactions are not closed / cleaned up.
      */
     private boolean deferredReset = false;
+
+    /*static {
+        try {
+            ThreadTag.registerMBean();
+        } catch (Exception e) {
+            System.out.println ("Can not registerer MBean for ThreadTag");
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }*/
 
     // constructor
     /**
@@ -741,9 +756,14 @@ class DRDAConnThread extends Thread {
                 verifyInOrderACCSEC_SECCHK(codePoint,session.getRequiredSecurityCodepoint());
             }
 
+//            System.out.println ("Code point: " + String.valueOf(codePoint));
+
+            //ThreadTagProvider.instance().setTag(String.valueOf(codePoint));
             switch(codePoint)
             {
                 case CodePoint.CNTQRY:
+                    ThreadTagProvider.instance().setTag(String.valueOf("CNTQRY"));
+
                     try{
                         stmt = parseCNTQRY();
                         if (stmt != null)
@@ -767,6 +787,8 @@ class DRDAConnThread extends Thread {
                     }
                     break;
                 case CodePoint.EXCSQLIMM:
+                    ThreadTagProvider.instance().setTag(String.valueOf("EXCSQLIMM"));
+
                     try {
                         long updateCount = parseEXCSQLIMM();
                         // RESOLVE: checking updateCount is not sufficient
@@ -797,6 +819,8 @@ class DRDAConnThread extends Thread {
                     break;
 
                 case CodePoint.EXCSQLSET:
+                    ThreadTagProvider.instance().setTag(String.valueOf("EXCSQLSET"));
+
                     try {
                         if (parseEXCSQLSET()) {
                             // all went well.
@@ -816,6 +840,8 @@ class DRDAConnThread extends Thread {
                     break;
                     
                 case CodePoint.PRPSQLSTT:
+                    ThreadTagProvider.instance().setTag(String.valueOf("PRPSQLSTT"));
+
                     int sqldaType;
                     PRPSQLSTTfailed = false;
                     try {
@@ -858,17 +884,26 @@ class DRDAConnThread extends Thread {
                             writeOPNQFLRM(null);
                             break;
                         }
+                        //ThreadTagProvider.instance().setTag("OPNQRY_parse");
+
                         Pkgnamcsn pkgnamcsn = parseOPNQRY();
                         if (pkgnamcsn != null)
                         {
+                            //ThreadTagProvider.instance().setTag("OPNQRY_getDRDA");
                             stmt = database.getDRDAStatement(pkgnamcsn);
+                            //ThreadTagProvider.instance().setTag("OPNQRY_prepare");
                             PreparedStatement ps = stmt.getPreparedStatement();
+
+                            ThreadTagProvider.instance().setTag ("OPNQRY:" + ((EmbedStatement)ps).getSQLText());
+
                             ps.clearWarnings();
                             if (pendingStatementTimeout >= 0) {
                                 ps.setQueryTimeout(pendingStatementTimeout);
                                 pendingStatementTimeout = -1;
                             }
+                            //ThreadTagProvider.instance().setTag("EXEC");
                             stmt.execute();
+                            //ThreadTagProvider.instance().setTag("OPNQRY");
                             writeOPNQRYRM(false, stmt);
                             checkWarning(null, ps, null, 0, false, true);
 
@@ -924,9 +959,13 @@ class DRDAConnThread extends Thread {
                         // here to close the prepared statement 
                         // if OPNQRY failed.
                             writeOPNQFLRM(e);
+                    } finally {
+                        //ThreadTagProvider.instance().unsetTag();
                     }
                     break;
                 case CodePoint.RDBCMM:
+                    ThreadTagProvider.instance().setTag(String.valueOf("RDBCMM"));
+
                     try
                     {
                         if (SanityManager.DEBUG) {
@@ -953,6 +992,8 @@ class DRDAConnThread extends Thread {
                     }
                     break;
                 case CodePoint.RDBRLLBCK:
+                    ThreadTagProvider.instance().setTag(String.valueOf("RDBRLLBCK"));
+
                     try
                     {
                         if (SanityManager.DEBUG) {
@@ -976,6 +1017,8 @@ class DRDAConnThread extends Thread {
                     }
                     break;
                 case CodePoint.CLSQRY:
+                    ThreadTagProvider.instance().setTag(String.valueOf("CLSQRY"));
+
                     try{
                         stmt = parseCLSQRY();
                         stmt.rsClose();
@@ -989,10 +1032,14 @@ class DRDAConnThread extends Thread {
                     }
                     break;
                 case CodePoint.EXCSAT:
+                    ThreadTagProvider.instance().setTag(String.valueOf("EXCSAT"));
+
                     parseEXCSAT();
                     writeEXCSATRD();
                     break;
                 case CodePoint.ACCSEC:
+                    ThreadTagProvider.instance().setTag(String.valueOf("ACCSEC"));
+
                     int securityCheckCode = parseACCSEC();
                     writeACCSECRD(securityCheckCode); 
                     
@@ -1007,6 +1054,8 @@ class DRDAConnThread extends Thread {
                     checkSecurityCodepoint = true;
                     break;
                 case CodePoint.SECCHK:
+                    ThreadTagProvider.instance().setTag(String.valueOf("SECCHK"));
+
                     if (parseDRDAConnection()) {
                         // security all checked and connection ok
                         checkSecurityCodepoint = false;
@@ -1016,23 +1065,33 @@ class DRDAConnThread extends Thread {
                  * might get it from ccc; just skip them.
                  */
                 case CodePoint.BGNBND:
+                    ThreadTagProvider.instance().setTag(String.valueOf("BGNBND"));
+
                     reader.skipBytes();
                     writeSQLCARDs(null, 0);
                     break;
                 case CodePoint.BNDSQLSTT:
+                    ThreadTagProvider.instance().setTag(String.valueOf("BNDSQLSTT"));
+
                     reader.skipBytes();
                     parseSQLSTTDss();
                     writeSQLCARDs(null, 0);
                     break;
                 case CodePoint.SQLSTTVRB:
+                    ThreadTagProvider.instance().setTag(String.valueOf("SQLSTTVRB"));
+
                     // optional
                     reader.skipBytes();
                     break;
                 case CodePoint.ENDBND:
+                    ThreadTagProvider.instance().setTag(String.valueOf("ENDBND"));
+
                     reader.skipBytes();
                     writeSQLCARDs(null, 0);
                     break;
                 case CodePoint.DSCSQLSTT:
+                    ThreadTagProvider.instance().setTag(String.valueOf("DSCSQLSTT"));
+
                     if (PRPSQLSTTfailed) {
                         reader.skipBytes();
                         writeSQLCARDs(null, 0);
@@ -1056,6 +1115,7 @@ class DRDAConnThread extends Thread {
                     }
                     break;
                 case CodePoint.EXCSQLSTT:
+                    //ThreadTagProvider.instance().setTag("EXCSQLSTT");
                     if (PRPSQLSTTfailed) {
                         // Skip parameters too if they are chained Beetle 4867
                         skipRemainder(true);
@@ -1080,9 +1140,13 @@ class DRDAConnThread extends Thread {
                         }
                         writeSQLCARDs(e, 0);
                         errorInChain(e);
+                    } finally {
+                        //ThreadTagProvider.instance().unsetTag();
                     }
                     break;
                 case CodePoint.SYNCCTL:
+                    ThreadTagProvider.instance().setTag("SYNCCTL");
+
                     if (xaProto == null) {
                         xaProto = new DRDAXAProtocol(this);
                     }
@@ -1097,6 +1161,8 @@ class DRDAConnThread extends Thread {
                 default:
                     codePointNotSupported(codePoint);
             }
+
+            ThreadTagProvider.instance().unsetTag();
 
             if (SanityManager.DEBUG) {
                 String cpStr = new CodePointNameTable().lookup(codePoint);
@@ -1136,6 +1202,10 @@ class DRDAConnThread extends Thread {
 
         }
         while (reader.isChainedWithSameID() || reader.isChainedWithDiffID());
+
+        //System.out.println("Finished");
+        //ThreadTagProvider.instance().unsetTag();
+
     }
 
     /**
@@ -3918,6 +3988,10 @@ class DRDAConnThread extends Thread {
 
         DRDAStatement stmt = database.newDRDAStatement(pkgnamcsn);
         String sqlStmt = parsePRPSQLSTTobjects(stmt);
+        if (! sqlStmt.startsWith("call")) {
+            //System.out.println(st.getSQLText());
+            //ThreadTagProvider.instance().setTag(sqlStmt);
+        }
         if (databaseToSet != null) {
             stmt.setDatabase(database);
         }
@@ -4278,6 +4352,14 @@ class DRDAConnThread extends Thread {
         boolean needPrepareCall = false;
 
         stmt  = database.getDRDAStatement(pkgnamcsn);
+
+        EmbedStatement st = (EmbedStatement)(stmt.getPreparedStatement());
+        String sql = st.getSQLText();
+        if (! stmt.isCall) {
+            //System.out.println (st.getSQLText());
+            ThreadTagProvider.instance().setTag("EXCSQLSTT:" + sql);
+        }
+
         boolean isProcedure = (procName !=null || 
                                (stmt != null && 
                                 stmt.wasExplicitlyPrepared() &&
@@ -5396,6 +5478,9 @@ class DRDAConnThread extends Thread {
         // initialize statement for reuse
         drdaStmt.initialize();
         String sqlStmt = parseEXECSQLIMMobjects();
+        //System.out.println (sqlStmt);
+        //ThreadTagProvider.instance().setTag(sqlStmt);
+
         EngineStatement statement = drdaStmt.getStatement();
         statement.clearWarnings();
         if (pendingStatementTimeout >= 0) {

@@ -115,9 +115,9 @@ class CodePoint
     final static int DSCSQLSTT = 0x2008;
     final static int ENDBND = 0x2009;
     final static int EXCSQLIMM = 0x200A;
-    final static int EXCSQLSTT = 0x200B;
+    final static int EXCSQLSTT = 0x200B; // major
     final static int EXCSQLSET = 0x2014;
-    final static int OPNQRY = 0x200C;
+    final static int OPNQRY = 0x200C;    // major
     final static int PRPSQLSTT = 0x200D;
     final static int RDBCMM = 0x200E;
     final static int RDBRLLBCK = 0x200F;

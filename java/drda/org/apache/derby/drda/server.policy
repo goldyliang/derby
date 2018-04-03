@@ -103,6 +103,15 @@ grant codeBase "${derby.install.url}derby.jar"
   //
   permission java.lang.RuntimePermission "accessUserInformation";
   permission java.lang.RuntimePermission "getFileStoreAttributes";
+
+  // For MBean of ThreadTag
+  permission javax.management.MBeanPermission
+       "com.tagperf.*", "registerMBean,unregisterMBean";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "modifyThreadGroup";
+
+
 };
 
 
@@ -158,6 +167,15 @@ grant codeBase "${derby.install.url}derbynet.jar"
   permission java.io.FilePermission "<<ALL FILES>>", "read";
   permission java.io.FilePermission "java.runtime.version", "read";
   permission java.io.FilePermission "java.fullversion", "read";
+
+  // For MBean of ThreadTag
+  permission javax.management.MBeanServerPermission "createMBeanServer";
+  permission javax.management.MBeanPermission
+       "com.tagperf.*", "registerMBean,unregisterMBean";
+  permission javax.management.MBeanTrustPermission "register";
+  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+  permission java.lang.RuntimePermission "accessDeclaredMembers";
+  permission java.lang.RuntimePermission "modifyThreadGroup";
 };
 
 
