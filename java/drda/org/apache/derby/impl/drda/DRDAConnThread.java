@@ -231,7 +231,7 @@ class DRDAConnThread extends Thread {
      */
     private boolean deferredReset = false;
 
-    /*static {
+    static {
         try {
             ThreadTag.registerMBean();
         } catch (Exception e) {
@@ -239,7 +239,7 @@ class DRDAConnThread extends Thread {
             e.printStackTrace();
             System.exit(1);
         }
-    }*/
+    }
 
     // constructor
     /**

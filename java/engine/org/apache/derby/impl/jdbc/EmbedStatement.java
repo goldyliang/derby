@@ -21,8 +21,8 @@
 
 package org.apache.derby.impl.jdbc;
 
-import com.tagperf.sampler.ThreadTag;
-import com.tagperf.sampler.ThreadTagProvider;
+//import com.tagperf.sampler.ThreadTag;
+//import com.tagperf.sampler.ThreadTagProvider;
 
 import org.apache.derby.iapi.reference.SQLState;
 
