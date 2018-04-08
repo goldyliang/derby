@@ -1,3 +1,8 @@
+com.tagperf.sampler.TagExecRecord.class
+com.tagperf.sampler.TagExecRecordsPerThread.class
+com.tagperf.sampler.ThreadTag.class
+com.tagperf.sampler.ThreadTagMBean.class
+com.tagperf.sampler.ThreadTagProvider.class
 org.apache.derby.drda.NetServlet.class
 org.apache.derby.drda.NetworkServerControl.class
 org.apache.derby.impl.drda.AppRequester.class
