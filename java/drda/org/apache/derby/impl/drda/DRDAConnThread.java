@@ -756,9 +756,6 @@ class DRDAConnThread extends Thread {
                 verifyInOrderACCSEC_SECCHK(codePoint,session.getRequiredSecurityCodepoint());
             }
 
-//            System.out.println ("Code point: " + String.valueOf(codePoint));
-
-            //ThreadTagProvider.instance().setTag(String.valueOf(codePoint));
             switch(codePoint)
             {
                 case CodePoint.CNTQRY:
@@ -865,6 +862,8 @@ class DRDAConnThread extends Thread {
                     }
                     break;
                 case CodePoint.OPNQRY:
+                    ThreadTagProvider.instance().setTag(String.valueOf("OPNQRY"));
+
                     try {
                         // activate the following to run the isValid(timeout) test in jdbc4.ConnectionTest
                         /*try { 
@@ -884,14 +883,11 @@ class DRDAConnThread extends Thread {
                             writeOPNQFLRM(null);
                             break;
                         }
-                        //ThreadTagProvider.instance().setTag("OPNQRY_parse");
 
                         Pkgnamcsn pkgnamcsn = parseOPNQRY();
                         if (pkgnamcsn != null)
                         {
-                            //ThreadTagProvider.instance().setTag("OPNQRY_getDRDA");
                             stmt = database.getDRDAStatement(pkgnamcsn);
-                            //ThreadTagProvider.instance().setTag("OPNQRY_prepare");
                             PreparedStatement ps = stmt.getPreparedStatement();
 
                             ThreadTagProvider.instance().setTag ("OPNQRY:" + ((EmbedStatement)ps).getSQLText());
@@ -901,9 +897,7 @@ class DRDAConnThread extends Thread {
                                 ps.setQueryTimeout(pendingStatementTimeout);
                                 pendingStatementTimeout = -1;
                             }
-                            //ThreadTagProvider.instance().setTag("EXEC");
                             stmt.execute();
-                            //ThreadTagProvider.instance().setTag("OPNQRY");
                             writeOPNQRYRM(false, stmt);
                             checkWarning(null, ps, null, 0, false, true);
 
@@ -1115,7 +1109,7 @@ class DRDAConnThread extends Thread {
                     }
                     break;
                 case CodePoint.EXCSQLSTT:
-                    //ThreadTagProvider.instance().setTag("EXCSQLSTT");
+                    ThreadTagProvider.instance().setTag("EXCSQLSTT");
                     if (PRPSQLSTTfailed) {
                         // Skip parameters too if they are chained Beetle 4867
                         skipRemainder(true);
@@ -3988,10 +3982,6 @@ class DRDAConnThread extends Thread {
 
         DRDAStatement stmt = database.newDRDAStatement(pkgnamcsn);
         String sqlStmt = parsePRPSQLSTTobjects(stmt);
-        if (! sqlStmt.startsWith("call")) {
-            //System.out.println(st.getSQLText());
-            //ThreadTagProvider.instance().setTag(sqlStmt);
-        }
         if (databaseToSet != null) {
             stmt.setDatabase(database);
         }
@@ -4356,7 +4346,6 @@ class DRDAConnThread extends Thread {
         EmbedStatement st = (EmbedStatement)(stmt.getPreparedStatement());
         String sql = st.getSQLText();
         if (! stmt.isCall) {
-            //System.out.println (st.getSQLText());
             ThreadTagProvider.instance().setTag("EXCSQLSTT:" + sql);
         }
 
@@ -5478,8 +5467,6 @@ class DRDAConnThread extends Thread {
         // initialize statement for reuse
         drdaStmt.initialize();
         String sqlStmt = parseEXECSQLIMMobjects();
-        //System.out.println (sqlStmt);
-        //ThreadTagProvider.instance().setTag(sqlStmt);
 
         EngineStatement statement = drdaStmt.getStatement();
         statement.clearWarnings();
